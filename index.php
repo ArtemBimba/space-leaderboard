@@ -1,0 +1,1 @@
+<?php echo 'Space Leaderboard is working'; ?>

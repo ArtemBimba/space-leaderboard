@@ -1,34 +1,19 @@
 <?php
-header("Content-Type: application/json");
-$host = "sql312.infinityfree.com";
-$user = "if0_38949461";
-$password = "Artem1911";
-$dbname = "if0_38949461_spacedash";
-
+include 'config.php';
 $nickname = $_POST['nickname'] ?? '';
-if (empty($nickname)) {
-    echo json_encode(["success" => false, "message" => "Нікнейм не передано"]);
+if (!$nickname) {
+    echo json_encode(["success" => false, "message" => "Нікнейм порожній"]);
     exit;
 }
-$conn = new mysqli($host, $user, $password, $dbname);
-if ($conn->connect_error) {
-    echo json_encode(["success" => false, "message" => "Помилка з'єднання"]);
-    exit;
-}
-$stmt = $conn->prepare("SELECT id FROM players WHERE nickname = ?");
-$stmt->bind_param("s", $nickname);
-$stmt->execute();
-$stmt->store_result();
-if ($stmt->num_rows > 0) {
-    echo json_encode(["success" => false, "message" => "Такий нік уже існує"]);
+$result = pg_query_params($conn, "SELECT 1 FROM players WHERE nickname = $1", [$nickname]);
+if (pg_num_rows($result) > 0) {
+    echo json_encode(["success" => false, "message" => "Такий нік вже існує"]);
 } else {
-    $stmt = $conn->prepare("INSERT INTO players (nickname, score) VALUES (?, 0)");
-    $stmt->bind_param("s", $nickname);
-    if ($stmt->execute()) {
-        echo json_encode(["success" => true, "message" => "Гравця зареєстровано"]);
+    $res = pg_query_params($conn, "INSERT INTO players (nickname, score) VALUES ($1, 0)", [$nickname]);
+    if ($res) {
+        echo json_encode(["success" => true]);
     } else {
-        echo json_encode(["success" => false, "message" => "Помилка при додаванні"]);
+        echo json_encode(["success" => false, "message" => "Помилка при реєстрації"]);
     }
 }
-$conn->close();
 ?>

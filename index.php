@@ -1,1 +1,1 @@
-<?php echo 'Space Leaderboard is working'; ?>
+<?php echo 'PostgreSQL Leaderboard Server Active'; ?>

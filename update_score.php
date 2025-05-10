@@ -1,27 +1,15 @@
 <?php
-header("Content-Type: application/json");
-$host = "sql312.infinityfree.com";
-$user = "if0_38949461";
-$password = "Artem1911";
-$dbname = "if0_38949461_spacedash";
-
+include 'config.php';
 $nickname = $_POST['nickname'] ?? '';
-$score = intval($_POST['score'] ?? 0);
-if (empty($nickname)) {
-    echo json_encode(["success" => false, "message" => "Нікнейм не передано"]);
+$score = (int)($_POST['score'] ?? 0);
+if (!$nickname) {
+    echo json_encode(["success" => false, "message" => "Немає ніка"]);
     exit;
 }
-$conn = new mysqli($host, $user, $password, $dbname);
-if ($conn->connect_error) {
-    echo json_encode(["success" => false, "message" => "Помилка з'єднання"]);
-    exit;
-}
-$stmt = $conn->prepare("UPDATE players SET score = ? WHERE nickname = ? AND score < ?");
-$stmt->bind_param("isi", $score, $nickname, $score);
-if ($stmt->execute()) {
-    echo json_encode(["success" => true, "message" => "Результат оновлено"]);
+$res = pg_query_params($conn, "UPDATE players SET score = $1, last_updated = CURRENT_TIMESTAMP WHERE nickname = $2 AND score < $1", [$score, $nickname]);
+if (pg_affected_rows($res) > 0) {
+    echo json_encode(["success" => true]);
 } else {
-    echo json_encode(["success" => false, "message" => "Помилка при оновленні"]);
+    echo json_encode(["success" => false]);
 }
-$conn->close();
 ?>
